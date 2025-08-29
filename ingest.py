@@ -42,5 +42,5 @@ if __name__ == "__main__":
     chunks = chunk_text(full_text, chunk_size=200, overlap=30)
     print("Antall chunks:", len(chunks))
     #sjekk to første chunker
-    for c in chunks [:2]:
+    for c in chunks [:4]:
         print(f"\n# Chunk {c['id']} ({c['start_word']}–{c['end_word']}):\n{c['text'][:300]}...")
