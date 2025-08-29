@@ -20,5 +20,5 @@ def chunk_text (text, chunk_size=200):
   return []
 
 if __name__ == "__main__":
-  pages=load_pdf("data/test.pdf) 
+  pages=load_pdf("data/test.pdf") 
   print("Antall sider:", len(pages))
