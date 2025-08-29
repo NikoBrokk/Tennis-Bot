@@ -43,7 +43,7 @@ def chunk_text(text, chunk_size=200, overlap=30):
 
     return chunks
 
-def print_overlap_check(chunks, k=10):
+def print_overlap_check(chunks, k=30):
     # print siste k ord i chunk i og første k ord i chunk i+1
     for i in range(min(2, len(chunks) - 1)):  # bare to første par
         a = chunks[i]["text"].split()
