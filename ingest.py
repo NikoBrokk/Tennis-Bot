@@ -62,4 +62,4 @@ if __name__ == "__main__":
 
     for c in chunks[:2]:
         print(f"\n# Chunk {c['id']} ({c['start_word']}–{c['end_word']}):\n{c['text'][:300]}...")
-    print_overlap_check(chunks, k=10)
+    print_overlap_check(chunks, k=30)
