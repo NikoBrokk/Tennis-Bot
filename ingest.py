@@ -20,6 +20,5 @@ def chunk_text (text, chunk_size=200):
   return []
 
 if __name__ == "__main__":
-  # TODO: test med en PDF i data/-mappa
-  # print antall sider og antall chunks
-  pass
+  pages=load_pdf("data/test.pdf) 
+  print("Antall sider:", len(pages))
