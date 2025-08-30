@@ -1,3 +1,4 @@
 numpy
 scikit-learn
 PyPDF2
+sentence_transformers
