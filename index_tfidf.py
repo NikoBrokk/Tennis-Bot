@@ -13,7 +13,7 @@ def build_tfidf(chunks): #lager term frequency inverse document frequency formel
 def query_tfidf(vectorizer, X, chunks, query, top_k=5): #bruk tf-idf tallene, gjør spørsmålene til kosine med retning og finn de topp fem chunksene med samme kosine likhet
   q = vectorizer.transform([query]) #verdsett queryen
   sims = linear_kernel(q, X).ravel() #finn kosine likhet med chunks
-  top_idx = np.argsort(sims) [::-1] [:top_k] #rangerer de likeste kosinene
+  top_idx = np.argsort(sims)[::-1][:top_k]  #rangerer de likeste kosinene
 
   results = [] #her kommer resultatene
   for rank, idx in enumerate(top_idx, 1):  #for løkke for å definere de beste kildene
