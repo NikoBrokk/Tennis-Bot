@@ -21,6 +21,7 @@ def rag_answer(query, pdf_path="data/test.pdf", k=3):
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     prompt = f"""Du er en hjelpsom assistent for Asker Tennis. 
     Skriv et svar på 2-3 setninger. 
+    Hvis du ikke finner svaret blant kildene dine, svar "jeg vet ikke".
     Bruk KUN denne informasjonen til å svare: 
     {context}
 
@@ -36,3 +37,4 @@ if __name__ == "__main__":
     q = input("Skriv et spørsmål: ")  
     svar = rag_answer(q)  
     print("\n=== SVAR ===\n", svar)  
+
