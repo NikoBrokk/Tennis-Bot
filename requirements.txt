@@ -1,4 +1,4 @@
-numpy
+numpy<2
 scikit-learn
 PyPDF2
-sentence_transformers
+sentence-transformers
