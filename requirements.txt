@@ -3,3 +3,4 @@ scikit-learn
 PyPDF2
 sentence-transformers
 streamlit == 1.37.0
+openai
