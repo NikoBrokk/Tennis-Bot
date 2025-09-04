@@ -1,32 +1,29 @@
 from pathlib import Path  # trygg håndtering av filstier
 import requests  # bibliotek for HTTP-henting av nettsider
+from bs4 import BeautifulSoup #fra HTML til string
 
 BASE_DIR = Path(__file__).resolve().parents[1]  
-# ?.resolve() = gjør til absolutt sti
-# .parents[1] = gå opp to nivå (fra scripts/ → til prosjektrot)
-# Vi bruker BASE_DIR senere når vi skal lagre i data/
-
 START_URL = "https://www.askertennis.no/"  
-# første nettsiden vi tester på (OBS: du hadde "hhtps" og 1 / for lite)
-
 HEADERS = {
     "User-Agent": "AskerTennisRAG/0.1 (+https://github.com/NikoBrokk/Tennis-Bot)"
 }  
-# Forteller serveren "hvem" vi er (høflig og nyttig hvis nettsiden logger trafikk)
 
-def fetch_html(url: str) -> str:  
-    # Funksjon som henter ut rå HTML fra en URL
-    resp = requests.get(url, headers=HEADERS, timeout=20)  
-    #? requests.get(...) = sender HTTP-forespørsel
-    # headers=HEADERS = sender med vår User-Agent
-    # timeout=20 = venter maks 20 sek før vi gir opp
-    resp.raise_for_status()  
-    #? Sjekker HTTP-statuskode: 
-    # 200 = OK → går videre
-    # 404, 500 osv. → kaster en Exception umiddelbart
+def fetch_html(url: str) -> str:   #fra HTML til string
+    resp = requests.get(url, headers=HEADERS, timeout=20)  #henter siden og jobber maks 20 sekunder
+    resp.raise_for_status()  #gi feilkode ved 404 eller 500
     return resp.text  
-    #? returnerer selve HTML-teksten som en streng
 
+def html_to_text(html: str) -> str: #gjør HTML teksten lesbar for programmet
+    soup = BeautifulSoup(html, "html.parser")
+    for tag in soup(["script", "style", "noscript"]): #fjern unødvendig støy fra HTML
+        tag.decompose() #fjern det
+    raw = soup.get_text(separator="\n")
+    lines = [ln.strip() for ln in raw.splitlines()]
+    non_empty = [ln for ln in lines if ln]
+    text = "\n".join(non_empty)
+    return text
+
+    
 if __name__ == "__main__":  
     print(f"[TEST] Henter HTML fra: {START_URL}")
     try:
@@ -34,10 +31,14 @@ if __name__ == "__main__":
         # kaller funksjonen vår → henter HTML fra forsiden
         print("[TEST] OK: mottok HTML")
         print(f"[TEST] Antall tegn i HTML: {len(html)}")  
-        # teller tegn som enkel sanity check
-        print("[TEST] Utdrag (første 300 tegn):")
-        print(html[:300].replace("\n", " ") + " ...")  
-        # viser starten på HTML-en (uten linjeskift)
+
+        clean = html_to_text(html)
+        print(f"[TEST] Antall tegn i ren tekst: {len(clean)}")
+        print("[TEST] Første 30 linjer av ren tekst:")
+        preview_lines = clean.splitlines()[:30]
+        for i, ln in enumerate(preview_lines, start=1):
+            print(f"{i:02d}: {ln[:120]}")
+            
     except requests.HTTPError as e:  
         #? Fanges hvis statuskode ≠ 200 (f.eks. 404 Not Found)
         print(f"[TEST] HTTP-feil: {e}")
