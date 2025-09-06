@@ -2,6 +2,7 @@ from pathlib import Path  # trygg håndtering av filstier
 import time 
 import requests  # bibliotek for HTTP-henting av nettsider
 from bs4 import BeautifulSoup #hentet HTML fra url
+import re
 
 BASE_DIR = Path(__file__).resolve().parents[1]  
 OUTPUT_DIR = BASE_DIR / "data"  #legg tekstene i datafila
@@ -45,6 +46,60 @@ def save_text(text: str, url: str) -> Path: #tar string og slugify url til fil m
         f.write(text)
     return path
 
+def filter_noise(text: str) -> str:
+    # STOP_SUBSTRINGS = uttrykk som ofte er UI/handel-støy og sjelden nyttig faglig
+    STOP_SUBSTRINGS = [
+        "Handlekurven din", "Fortsett å handle", "Kasse", "Logg på", "Søk",
+        "Gå videre til innholdet", "Laster inn", "KJØP NÅ", "BOOK EN BANE", "BOOK HER",
+        "Vis alle", "Se mer", "Bli sponsor", "Bli sponsor av", "Sponsorer",
+        "Betalingsmåter", "Ved å gjøre et valg vil hele siden lastes inn på nytt.",
+        "Facebook", "Instagram", "Norsk (bokmål)", "English", "©",
+        "American Express", "Apple Pay", "Google Pay", "Klarna", "Maestro",
+        "Mastercard", "Shop Pay", "Union Pay", "Visa",
+        "Asker Tennis Gavekort",        # produkt/butikk-spesifikk
+        "Vanlig pris", "Salgspris", "Enhetspris",  # nettbutikk-prislinjer
+        "Privattime med",               # produktkort-listing gjør lite for kunnskapsbase
+    ]
+    # PATTERNS = regex som fanger generisk støy (sideindikatorer, prosenter, priser, tomme linjer)
+    PATTERNS = [
+        r"^\d+\s*/\s*av\s*\d+\s*$",             # "1 / av 5"
+        r"\b\d{1,3}%\b",                         # prosentsatser som "50%"
+        r"\b\d{1,3}(?:\.\d{3})*,\d{2}\s*kr\b",   # priser "1.349,00 kr" eller "475,00 kr"
+        r"^\s*$",                                # tom linje (rydder vi senere uansett)
+    ]
+
+    # compile regex én gang for ytelse
+    compiled = [re.compile(p, flags=re.IGNORECASE) for p in PATTERNS]  # kompiler alle mønstre
+    kept = []                                   # linjer vi beholder
+    prev = None                                 # for å unngå direkte duplikater på rad
+
+    for ln in text.splitlines():                # gå gjennom hver linje
+        ln_stripped = ln.strip()                # fjern whitespace i begge ender
+        ln_lower = ln_stripped.lower()          # lag en "lower" variant for robust søk
+
+        # dropp hvis linjen inneholder noen "stop"-fraser (case-insensitive via lower())
+        if any(stop.lower() in ln_lower for stop in STOP_SUBSTRINGS):
+            continue
+
+        # dropp hvis linjen matcher noen av regex-mønstrene
+        if any(rx.search(ln_stripped) for rx in compiled):
+            continue
+
+        # dropp eksplisitte call-to-actions
+        if ln_stripped in {"Meld deg på", "Bli med i dag", "Bestill i dag!", "KJØP NÅ"}:
+            continue
+
+        # dropp hvis linjen er nøyaktig lik forrige (rett-etter-duplikat)
+        if prev is not None and ln_stripped == prev.strip():
+            continue
+
+        kept.append(ln_stripped)                # behold linjen
+        prev = ln                                # husk for duplikatsjekk
+
+    cleaned = "\n".join(kept)                   # sett sammen beholdte linjer
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)  # maks to\n på rad
+    return cleaned                              # gi tilbake filtrert tekst
+
 
 if __name__ == "__main__":  
     print(f"[TEST] Henter HTML fra: {START_URL}")
@@ -60,7 +115,13 @@ if __name__ == "__main__":
         for i, ln in enumerate(clean.splitlines()[:10], start=1):
             print(f"{i:02d}: {ln[:120]}")
 
-        saved_path = save_text(clean, START_URL)
+        filtered = filter_noise(clean)
+        print(f" [TEST] Linjer etter filter: {len(filtered.splitlines())}")
+        print(f"[TEST] Første 15 linjer etter filter:")
+        for i, ln in enumerate(filtered.splitlines() [:15], start=1):
+            print(f"{i:02d}: {ln[:120]}")
+        
+        saved_path = save_text(filtered, START_URL)
         print(f"[TEST] Lagret fil: {saved_path}") 
         print(f"[TEST] Filstørrelse (i bytes): {saved_path.stat().st_size}")
        
