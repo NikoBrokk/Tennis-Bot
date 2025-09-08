@@ -6,3 +6,4 @@ streamlit == 1.37.0
 openai
 requests==2.32.3
 beautifulsoup4==4.12.3
+trafilatura
