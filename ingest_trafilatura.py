@@ -2,6 +2,7 @@ import os
 import pathlib
 import trafilatura
 from urllib.parse import urlparse
+from trafilatura import sitemaps
 
 SITEMAP_URL = "https://askertennis.no/sitemap.xml"
 
