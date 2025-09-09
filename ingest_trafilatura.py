@@ -15,7 +15,7 @@ for url in urls[:10]:
   downloaded = trafilatura.fetch_url(url)
   if not downloaded:
     continue
-  md = trafilatura.extract(downloaded, output="markdown")
+  md = trafilatura.extract(downloaded, output_format="markdown")
   if not md:
     continue
 
